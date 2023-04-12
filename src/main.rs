@@ -1,22 +1,17 @@
 use std::time::Instant;
 
-use image::{RgbImage};
+use image::RgbImage;
 use rayon::prelude::*;
 
-use objects::camera::Camera;
-
-use crate::data_structs::ray::ray_color;
-use crate::data_structs::vec3::{Color, Point3, Vec3};
-use crate::materials::dielectric::Dielectric;
-use crate::materials::lambertian::Lambertian;
-use crate::materials::Material;
-use crate::materials::metal::Metal;
-use crate::objects::HittableList;
-use crate::objects::sphere::Sphere;
-
-mod materials;
-mod objects;
-mod data_structs;
+use rust_raytracer::data_structs::ray::ray_color;
+use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
+use rust_raytracer::materials::dielectric::Dielectric;
+use rust_raytracer::materials::lambertian::Lambertian;
+use rust_raytracer::materials::Material;
+use rust_raytracer::materials::metal::Metal;
+use rust_raytracer::objects::camera::Camera;
+use rust_raytracer::objects::HittableList;
+use rust_raytracer::objects::sphere::Sphere;
 
 // Image. Change these params to get faster, but lower quality renders.
 const ASPECT_RATIO: f64 = 3.0 / 2.0;
@@ -62,8 +57,8 @@ fn random_scene() -> HittableList {
     world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
-    world.add(Sphere::new(Point3::new(4.0, 0.8, 2.5), 0.8, material_dielectric));
-    world.add(Sphere::new(Point3::new(4.0, 0.8, 2.5), -0.75, material_dielectric));
+    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric));
+    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
     world
 }
@@ -76,7 +71,7 @@ fn main() {
     let look_from = Point3::new(13.0, 2.0, 5.0);
     let look_at = Point3::new(0.0, 0.0, 0.0);
     let up_vector = Vec3::new(0.0, 1.0, 0.0);
-    let field_of_view: f64 = 30.0;
+    let field_of_view: f64 = 20.0;
     let dist_to_focus = 10.0;
     let aperture = 0.1;
 
