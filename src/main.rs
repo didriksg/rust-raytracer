@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use image::RgbImage;
-use rayon::prelude::*;
 use indicatif::{ProgressBar, ProgressStyle};
+use rayon::prelude::*;
 
 use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
@@ -14,14 +14,13 @@ use rust_raytracer::objects::camera::Camera;
 use rust_raytracer::objects::HittableList;
 use rust_raytracer::objects::sphere::Sphere;
 
-
 // Image. Change these params to get faster, but lower quality renders.
 const ASPECT_RATIO: f64 = 3.0 / 2.0;
 const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: usize = 500;
 const MAX_DEPTH: usize = 50;
-const OUTPUT_PATH: &str = "renders/output.png";
+const OUTPUT_PATH: &str = "output.png";
 
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
@@ -85,9 +84,8 @@ fn main() {
 
     // Progress bar
     let progress_bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
-    let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering]")
-    .unwrap();
-    progress_bar.set_style(progress_style);
+    let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering]");
+    progress_bar.set_style(progress_style.unwrap());
 
     let pixels = (0..IMAGE_HEIGHT)
         .into_par_iter()
