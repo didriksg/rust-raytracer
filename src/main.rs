@@ -2,6 +2,7 @@ use std::time::Instant;
 
 use image::RgbImage;
 use rayon::prelude::*;
+use indicatif::{ProgressBar, ProgressStyle};
 
 use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
@@ -13,12 +14,14 @@ use rust_raytracer::objects::camera::Camera;
 use rust_raytracer::objects::HittableList;
 use rust_raytracer::objects::sphere::Sphere;
 
+
 // Image. Change these params to get faster, but lower quality renders.
 const ASPECT_RATIO: f64 = 3.0 / 2.0;
-const IMAGE_WIDTH: u32 = 1920;
+const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: usize = 500;
 const MAX_DEPTH: usize = 50;
+const OUTPUT_PATH: &str = "renders/output.png";
 
 fn random_scene() -> HittableList {
     let mut world = HittableList::new();
@@ -80,6 +83,12 @@ fn main() {
     // Render
     let render_time = Instant::now();
 
+    // Progress bar
+    let progress_bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
+    let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering]")
+    .unwrap();
+    progress_bar.set_style(progress_style);
+
     let pixels = (0..IMAGE_HEIGHT)
         .into_par_iter()
         .rev()
@@ -87,6 +96,7 @@ fn main() {
             (0..IMAGE_WIDTH)
                 .into_par_iter()
                 .map(|x| {
+                    progress_bar.inc(1);
                     (0..SAMPLES_PER_PIXEL)
                         .into_par_iter()
                         .map(|_| {
@@ -111,10 +121,11 @@ fn main() {
     }
 
     let render_time = render_time.elapsed();
-    println!("{:?}", render_time);
+    println!("Done.");
+    println!("Render time: {:?}", render_time);
 
-    match buffer.save("renders/output.png") {
+    match buffer.save(OUTPUT_PATH) {
         Err(e) => eprintln!("Error writing file: {e}"),
-        Ok(()) => println!("Done."),
+        Ok(()) => println!("Render saved to: {OUTPUT_PATH}"),
     };
 }
