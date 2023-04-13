@@ -18,7 +18,7 @@ use rust_raytracer::objects::sphere::Sphere;
 const ASPECT_RATIO: f64 = 3.0 / 2.0;
 const IMAGE_WIDTH: u32 = 400;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: usize = 500;
+const SAMPLES_PER_PIXEL: usize = 100;
 const MAX_DEPTH: usize = 50;
 const OUTPUT_PATH: &str = "output.png";
 
@@ -69,6 +69,7 @@ fn random_scene() -> HittableList {
 fn main() {
     // World.
     let world = random_scene();
+    
     // Camera.
     let look_from = Point3::new(13.0, 2.0, 5.0);
     let look_at = Point3::new(0.0, 0.0, 0.0);
