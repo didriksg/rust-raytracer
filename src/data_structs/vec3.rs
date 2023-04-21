@@ -17,11 +17,11 @@ pub fn random_in_unit_sphere() -> Point3 {
 }
 
 pub fn random_unit_vector() -> Vec3 {
-    return random_in_unit_sphere().normalize();
+    random_in_unit_sphere().normalize()
 }
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -40,6 +40,10 @@ impl Vec3 {
         y: 1.0,
         z: 1.0,
     };
+
+    pub fn as_vector(self) -> Vec<f64> {
+        vec![self.x, self.y, self.z]
+    }
 
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
@@ -101,6 +105,19 @@ impl Vec3 {
             x: rng.gen_range(min..max),
             y: rng.gen_range(min..max),
             z: rng.gen_range(min..max),
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Point3 {
+        loop {
+            let mut point = Vec3::random_with_limits(-1.0, 1.0);
+            point.z = 0.0;
+
+            if point.length_squared() >= 1.0 {
+                continue;
+            }
+
+            return point;
         }
     }
 

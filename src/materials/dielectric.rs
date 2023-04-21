@@ -9,7 +9,7 @@ pub struct Dielectric {
 }
 
 impl Dielectric {
-    pub fn new(index_of_refraction: f64) -> Dielectric {
+    pub fn new(index_of_refraction: f64) -> Self {
         Dielectric { index_of_refraction }
     }
 
@@ -42,7 +42,7 @@ impl Scatterable for Dielectric {
             Vec3::refract(unit_direction, record.normal, refraction_ratio)
         };
 
-        *scattered = Ray::new(record.point, direction);
+        *scattered = Ray::new(record.point, direction, ray.time);
         true
     }
 }

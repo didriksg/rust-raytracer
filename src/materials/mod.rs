@@ -17,6 +17,12 @@ pub enum Material {
     Dielectric(Dielectric),
 }
 
+impl Default for Material {
+    fn default() -> Self {
+        Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5)))
+    }
+}
+
 pub trait Scatterable {
     fn scatter(&self, ray: &Ray, record: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool;
 }

@@ -15,7 +15,7 @@ impl Lambertian {
 }
 
 impl Scatterable for Lambertian {
-    fn scatter(&self, _ray: &Ray, record: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
+    fn scatter(&self, ray: &Ray, record: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
         let mut scatter_direction = record.normal + random_unit_vector();
         scatter_direction = if scatter_direction.near_zero() {
             record.normal
@@ -23,7 +23,7 @@ impl Scatterable for Lambertian {
             scatter_direction
         };
 
-        *scattered = Ray::new(record.point, scatter_direction);
+        *scattered = Ray::new(record.point, scatter_direction, ray.time);
         *attenuation = self.albedo;
 
         true

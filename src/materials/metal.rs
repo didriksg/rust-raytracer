@@ -25,7 +25,7 @@ impl Scatterable for Metal {
     fn scatter(&self, ray: &Ray, record: &HitRecord, attenuation: &mut Color, scattered: &mut Ray) -> bool {
         let reflected = Vec3::reflect(ray.direction.normalize(), record.normal);
 
-        *scattered = Ray::new(record.point, reflected + self.fuzz * random_in_unit_sphere());
+        *scattered = Ray::new(record.point, reflected + self.fuzz * random_in_unit_sphere(), ray.time);
         *attenuation = self.albedo;
 
         scattered.direction.dot(record.normal) > 0.0

@@ -1,5 +1,7 @@
 use std::f64::consts::PI;
 
+use rand::{Rng, thread_rng};
+
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Point3, Vec3};
 
@@ -11,10 +13,22 @@ pub struct Camera {
     u: Vec3,
     v: Vec3,
     lens_radius: f64,
+    start_time: f64,
+    end_time: f64,
 }
 
 impl Camera {
-    pub fn new(look_from: Point3, look_at: Point3, up_vector: Vec3, fov: f64, aspect_ratio: f64, aperture: f64, focus_dist: f64) -> Camera {
+    pub fn new(
+        look_from: Point3,
+        look_at: Point3,
+        up_vector: Vec3,
+        fov: f64,
+        aspect_ratio: f64,
+        aperture: f64,
+        focus_dist: f64,
+        start_time: f64,
+        end_time: f64,
+    ) -> Self {
         let origin = look_from;
 
         let theta = fov * PI / 180.0;
@@ -39,28 +53,20 @@ impl Camera {
             u,
             v,
             lens_radius,
+            start_time,
+            end_time,
         }
     }
-
-    pub fn random_in_unit_disk() -> Point3 {
-        loop {
-            let mut point = Vec3::random_with_limits(-1.0, 1.0);
-            point.z = 0.0;
-
-            if point.length_squared() >= 1.0 {
-                continue;
-            }
-
-            return point;
-        }
-    }
-
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
-        let rd = self.lens_radius * Camera::random_in_unit_disk();
+        let rd = self.lens_radius * Vec3::random_in_unit_disk();
         let offset = self.u * rd.x + self.v * rd.y;
+        let mut rng = thread_rng();
 
-        Ray::new(self.origin + offset,
-                 self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset)
+        Ray::new(
+            self.origin + offset,
+            self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
+            rng.gen_range(self.start_time..self.end_time),
+        )
     }
 }

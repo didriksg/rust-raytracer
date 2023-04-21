@@ -2,21 +2,19 @@ use crate::data_structs::vec3::{Color, Point3, Vec3};
 use crate::materials::Scatterable;
 use crate::objects::{HitRecord, Hittable};
 
+#[derive(Default)]
 pub struct Ray {
     pub origin: Point3,
     pub direction: Vec3,
+    pub time: f64,
 }
 
 impl Ray {
-    pub fn new(origin: Point3, dir: Vec3) -> Ray {
-        Ray { origin, direction: dir }
+    pub fn new(origin: Point3, direction: Vec3, time: f64) -> Self {
+        Ray { origin, direction, time }
     }
     pub fn at(&self, t: f64) -> Point3 {
         self.origin + t * self.direction
-    }
-
-    pub fn default() -> Ray {
-        Ray::new(Vec3::ZERO, Vec3::ZERO)
     }
 }
 
@@ -24,7 +22,7 @@ impl Ray {
 pub fn ray_color(ray: &Ray, world: &dyn Hittable, depth: usize) -> Color {
     let mut record = HitRecord::default();
 
-    if depth <= 0 {
+    if depth == 0 {
         return Color::ZERO;
     }
 

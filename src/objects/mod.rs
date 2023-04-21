@@ -1,13 +1,19 @@
 use crate::data_structs::ray::Ray;
-use crate::data_structs::vec3::{Color, Point3, Vec3};
-use crate::materials::lambertian::Lambertian;
+use crate::data_structs::vec3::{Point3, Vec3};
 use crate::materials::Material;
+use crate::objects::aabb::AABB;
+use crate::objects::bvh::BVHNode;
+use crate::objects::moving_sphere::MovingSphere;
 use crate::objects::sphere::Sphere;
 
 pub mod sphere;
 pub mod camera;
+pub mod moving_sphere;
+pub mod aabb;
+pub mod bvh;
 
 
+#[derive(Default)]
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
@@ -17,16 +23,6 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn default() -> HitRecord {
-        HitRecord {
-            point: Vec3::ZERO,
-            normal: Vec3::ZERO,
-            t: 0.0,
-            front_face: false,
-            material: Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5))),
-        }
-    }
-
     pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) {
         let front_face = ray.direction.dot(outward_normal) < 0.0;
         let normal = if front_face {
@@ -42,21 +38,57 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool;
 }
 
-pub struct HittableList {
-    hittable_list: Vec<Sphere>,
+pub enum HittableObjet {
+    Sphere(Sphere),
+    MovingSphere(MovingSphere),
+    HittableList(HittableList),
+    BVHNode(BVHNode),
 }
+
+impl Hittable for HittableObjet {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+        match *self {
+            HittableObjet::Sphere(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
+            HittableObjet::MovingSphere(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
+            HittableObjet::HittableList(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
+            HittableObjet::BVHNode(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
+        }
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+        match *self {
+            HittableObjet::Sphere(ref inner) => inner.bounding_box(time0, time1, output_box),
+            HittableObjet::MovingSphere(ref inner) => inner.bounding_box(time0, time1, output_box),
+            HittableObjet::HittableList(ref inner) => inner.bounding_box(time0, time1, output_box),
+            HittableObjet::BVHNode(ref inner) => inner.bounding_box(time0, time1, output_box),
+        }
+    }
+}
+
+
+
+/// Holds hittable objects.
+#[derive(Default)]
+pub struct HittableList {
+    hittable_list: Vec<Box<dyn Hittable + Sync + Send>>,
+}
+
 
 impl HittableList {
-    pub fn new() -> HittableList {
-        HittableList { hittable_list: Vec::new() }
+    pub fn new() -> Self {
+        HittableList {
+            hittable_list: vec![],
+        }
     }
 
-    pub fn add(&mut self, sphere: Sphere) {
-        self.hittable_list.push(sphere);
+    pub fn add<T: Hittable + Send + Sync + 'static>(&mut self, hittable: T) {
+        self.hittable_list.push(Box::new(hittable));
     }
 }
+
 
 impl Hittable for HittableList {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
@@ -76,5 +108,30 @@ impl Hittable for HittableList {
         }
 
         return hit_anything;
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
+        if self.hittable_list.is_empty() {
+            return false;
+        }
+
+        let mut temp_box = AABB::default();
+        let mut first_box = true;
+
+        for hittable in self.hittable_list.iter() {
+            if !hittable.bounding_box(time0, time1, &mut temp_box) {
+                return false
+            }
+
+            *output_box = if first_box {
+                temp_box
+            } else {
+                AABB::surrounding_box(*output_box, temp_box)
+            };
+
+            first_box = false;
+        }
+
+        true
     }
 }
