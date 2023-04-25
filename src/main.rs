@@ -8,7 +8,7 @@ use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
 use rust_raytracer::objects::camera::Camera;
 use rust_raytracer::objects::HittableList;
-use rust_raytracer::scenes::{movable_one_weekend};
+use rust_raytracer::scenes::{movable_one_weekend, one_weekend_scene};
 
 // Image. Change these params to get faster, but lower quality renders.
 const ASPECT_RATIO: f64 = 16.0 / 9.0;

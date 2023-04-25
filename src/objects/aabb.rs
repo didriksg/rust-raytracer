@@ -6,8 +6,8 @@ use crate::data_structs::vec3::Point3;
 /// Axis-aligned bounding box
 #[derive(Default, Copy, Clone)]
 pub struct AABB {
-    minimum: Point3,
-    maximum: Point3,
+    pub minimum: Point3,
+    pub maximum: Point3,
 }
 
 impl AABB {

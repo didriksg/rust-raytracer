@@ -2,9 +2,7 @@ use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Point3, Vec3};
 use crate::materials::Material;
 use crate::objects::aabb::AABB;
-use crate::objects::bvh::BVHNode;
-use crate::objects::moving_sphere::MovingSphere;
-use crate::objects::sphere::Sphere;
+use std::sync::Arc;
 
 pub mod sphere;
 pub mod camera;
@@ -41,41 +39,12 @@ pub trait Hittable {
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool;
 }
 
-pub enum HittableObjet {
-    Sphere(Sphere),
-    MovingSphere(MovingSphere),
-    HittableList(HittableList),
-    BVHNode(BVHNode),
-}
 
-impl Hittable for HittableObjet {
-    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
-        match *self {
-            HittableObjet::Sphere(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
-            HittableObjet::MovingSphere(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
-            HittableObjet::HittableList(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
-            HittableObjet::BVHNode(ref inner) => inner.hit(ray, t_min, t_max, hit_record),
-        }
-    }
-
-    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {
-        match *self {
-            HittableObjet::Sphere(ref inner) => inner.bounding_box(time0, time1, output_box),
-            HittableObjet::MovingSphere(ref inner) => inner.bounding_box(time0, time1, output_box),
-            HittableObjet::HittableList(ref inner) => inner.bounding_box(time0, time1, output_box),
-            HittableObjet::BVHNode(ref inner) => inner.bounding_box(time0, time1, output_box),
-        }
-    }
-}
-
-
-
-/// Holds hittable objects.
-#[derive(Default)]
+/// Holds hittable objects
+#[derive(Default, Clone)]
 pub struct HittableList {
-    hittable_list: Vec<Box<dyn Hittable + Sync + Send>>,
+    hittable_list: Vec<Arc<dyn Hittable + Sync + Send>>,
 }
-
 
 impl HittableList {
     pub fn new() -> Self {
@@ -85,7 +54,7 @@ impl HittableList {
     }
 
     pub fn add<T: Hittable + Send + Sync + 'static>(&mut self, hittable: T) {
-        self.hittable_list.push(Box::new(hittable));
+        self.hittable_list.push(Arc::new(hittable));
     }
 }
 
@@ -120,7 +89,7 @@ impl Hittable for HittableList {
 
         for hittable in self.hittable_list.iter() {
             if !hittable.bounding_box(time0, time1, &mut temp_box) {
-                return false
+                return false;
             }
 
             *output_box = if first_box {

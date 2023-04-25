@@ -55,8 +55,8 @@ pub fn movable_one_weekend() -> HittableList {
     world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
-    // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric));
-    // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
+    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric));
+    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
     world
 }
