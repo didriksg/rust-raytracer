@@ -1,24 +1,24 @@
+use std::cmp::Ordering;
+use std::sync::Arc;
+
 use rand::distributions::uniform::SampleRange;
 use rand::thread_rng;
+
 use crate::data_structs::ray::Ray;
 use crate::objects::{HitRecord, Hittable, HittableList};
 use crate::objects::aabb::AABB;
 
-
 /// Bounding volume hierarchy
+#[derive(Default, Clone)]
 pub struct BVHNode {
-    objects: HittableList,
-    start: usize,
-    end: usize,
-    left: Option<Box<dyn Hittable>>,
-    right: Option<Box<dyn Hittable>>,
+    left: Option<Arc<dyn Hittable + Sync + Send>>,
+    right: Option<Arc<dyn Hittable + Sync + Send>>,
     bbox: AABB,
 }
 
 
 impl BVHNode {
-
-    fn box_compare(a: &dyn Hittable, b: &dyn Hittable, axis: usize) -> bool {
+    fn box_compare(a: &Arc<dyn Hittable + Send + Sync>, b: &Arc<dyn Hittable + Send + Sync>, axis: usize) -> Ordering {
         let mut box_a = AABB::default();
         let mut box_b = AABB::default();
 
@@ -26,53 +26,91 @@ impl BVHNode {
             panic!("No bounding box in BVHNode.");
         }
 
-        box_a.minimum.as_vector()[axis] < box_a.minimum.as_vector()[axis]
+        let order = if box_a.minimum.as_vector()[axis] < box_a.minimum.as_vector()[axis] {
+            Ordering::Greater
+        } else if box_a.minimum.as_vector()[axis] == box_a.minimum.as_vector()[axis] {
+            Ordering::Equal
+        } else {
+            Ordering::Less
+        };
+
+        order
     }
 
-    fn box_x_compare(a: &dyn Hittable, b: &dyn Hittable) -> bool {true}
-    fn box_y_compare(a: &dyn Hittable, b: &dyn Hittable) -> bool {true}
-    fn box_z_compare(a: &dyn Hittable, b: &dyn Hittable) -> bool {true}
+    fn box_x_compare(a: &Arc<dyn Hittable + Send + Sync>, b: &Arc<dyn Hittable + Send + Sync>) -> Ordering {
+        Self::box_compare(a, b, 0)
+    }
 
-    pub fn new(self, hittables: Vec<Box<dyn Hittable + Send + Sync>>, start: usize, end: usize, time0: f64, time1: f64) -> Self {
+    fn box_y_compare(a: &Arc<dyn Hittable + Send + Sync>, b: &Arc<dyn Hittable + Send + Sync>) -> Ordering {
+        Self::box_compare(a, b, 1)
+    }
+
+    fn box_z_compare(a: &Arc<dyn Hittable + Send + Sync>, b: &Arc<dyn Hittable + Send + Sync>) -> Ordering {
+        Self::box_compare(a, b, 2)
+    }
+
+    pub fn new(hittables: Vec<Arc<dyn Hittable + Send + Sync>>, start: usize, end: usize, time0: f64, time1: f64) -> Self {
         let mut rng = thread_rng();
 
-        let mut objects = hittables;
-        let axis = (0..2).sample_single(&mut rng);
+        let mut objects = hittables.clone();
+        let axis = (0..3).sample_single(&mut rng);
 
         let comparator = match axis {
             0 => Self::box_x_compare,
             1 => Self::box_y_compare,
-            2 => Self::box_z_compare,
-            _ => Self::box_x_compare,
+            _ => Self::box_z_compare,
         };
 
+        let left;
+        let right;
 
-        BVHNode {
-            objects: Default::default(),
-            start: 0,
-            end: 0,
-            left: None,
-            right: None,
-            bbox: Default::default(),
+        let object_span = end - start;
+
+        if object_span == 1 {
+            left = objects[start].clone();
+            right = objects[start].clone();
+        } else if object_span == 2 {
+            if comparator(&objects[start], &objects[start + 1]) == Ordering::Less {
+                left = objects[start].clone();
+                right = objects[start + 1].clone();
+            } else {
+                left = objects[start + 1].clone();
+                right = objects[start].clone();
+            }
+        } else {
+            objects[start..end].sort_by(comparator);
+
+            let mid = start + object_span / 2;
+            left = Arc::new(BVHNode::new(objects.clone(), start, mid, time0, time1));
+            right = Arc::new(BVHNode::new(objects.clone(), mid, end, time0, time1));
+        }
+
+        objects.sort_by(comparator);
+
+        let mut box_left = AABB::default();
+        let mut box_right = AABB::default();
+
+        if left.bounding_box(time0, time1, &mut box_left)
+            || right.bounding_box(time0, time1, &mut box_right) {
+            panic!("No bounding box in bvh node constructor.")
+        }
+
+        Self {
+            left: Some(left),
+            right: Some(right),
+            bbox: AABB::surrounding_box(box_left, box_right),
         }
     }
 
-    pub fn from_list_hittable_list(hittable_list: HittableList, start: usize, end: usize, time0: f64, time1: f64) -> Self {
-        BVHNode {
-            objects: hittable_list.clone(),
-            start: 0,
-            end: hittable_list.hittable_list.len(),
-            left: None,
-            right: None,
-            bbox: Default::default(),
-        }
+    pub fn from_list_hittable_list(hittable_list: HittableList, time0: f64, time1: f64) -> Self {
+        BVHNode::new(hittable_list.hittable_list.clone(), 0, hittable_list.hittable_list.len(), time0, time1)
     }
 }
 
 impl Hittable for BVHNode {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
         if !self.bbox.hit(ray, t_min, t_max) {
-            return false
+            return false;
         }
 
         let hit_left = self.left

@@ -3,6 +3,7 @@ use crate::data_structs::vec3::{Point3, Vec3};
 use crate::materials::Material;
 use crate::objects::aabb::AABB;
 use std::sync::Arc;
+use dyn_clonable::dyn_clone::DynClone;
 
 pub mod sphere;
 pub mod camera;
@@ -34,7 +35,7 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable: DynClone {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool;
 }
@@ -43,8 +44,9 @@ pub trait Hittable {
 /// Holds hittable objects
 #[derive(Default, Clone)]
 pub struct HittableList {
-    hittable_list: Vec<Arc<dyn Hittable + Sync + Send>>,
+    pub hittable_list: Vec<Arc<dyn Hittable + Sync + Send>>,
 }
+
 
 impl HittableList {
     pub fn new() -> Self {
