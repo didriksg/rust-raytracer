@@ -5,7 +5,7 @@ use crate::objects::{HitRecord, Hittable};
 use crate::objects::aabb::AABB;
 use crate::objects::sphere::root_check;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct MovingSphere {
     start_point: Point3,
     end_point: Point3,

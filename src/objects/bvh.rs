@@ -26,15 +26,13 @@ impl BVHNode {
             panic!("No bounding box in BVHNode.");
         }
 
-        let order = if box_a.minimum.as_vector()[axis] < box_a.minimum.as_vector()[axis] {
+       if box_a.minimum.as_vector()[axis] < box_b.minimum.as_vector()[axis] {
             Ordering::Greater
         } else if box_a.minimum.as_vector()[axis] == box_a.minimum.as_vector()[axis] {
             Ordering::Equal
         } else {
             Ordering::Less
-        };
-
-        order
+        }
     }
 
     fn box_x_compare(a: &Arc<dyn Hittable + Send + Sync>, b: &Arc<dyn Hittable + Send + Sync>) -> Ordering {
@@ -84,8 +82,6 @@ impl BVHNode {
             left = Arc::new(BVHNode::new(objects.clone(), start, mid, time0, time1));
             right = Arc::new(BVHNode::new(objects.clone(), mid, end, time0, time1));
         }
-
-        objects.sort_by(comparator);
 
         let mut box_left = AABB::default();
         let mut box_right = AABB::default();

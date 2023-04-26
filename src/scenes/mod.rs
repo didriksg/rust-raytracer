@@ -9,10 +9,10 @@ use crate::objects::HittableList;
 use crate::objects::moving_sphere::MovingSphere;
 use crate::objects::sphere::Sphere;
 
-pub fn movable_one_weekend() -> HittableList {
+fn movable_one_weekend() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let ground_material = Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)));
     world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_material));
 
     for a in -11..11 {
@@ -24,7 +24,7 @@ pub fn movable_one_weekend() -> HittableList {
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let material = if choose_material < 0.8 {
                     let albedo = Color::random() * Color::random();
-                    let material = Material::Lambertian(Lambertian::new(albedo));
+                    let material = Material::Lambertian(Lambertian::new_color(albedo));
                     is_movable = true;
 
                     material
@@ -49,7 +49,7 @@ pub fn movable_one_weekend() -> HittableList {
     }
 
     let material_dielectric = Material::Dielectric(Dielectric::new(1.5));
-    let material_lambertian = Material::Lambertian(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    let material_lambertian = Material::Lambertian(Lambertian::new_color(Color::new(0.4, 0.2, 0.1)));
     let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
     world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
@@ -61,10 +61,10 @@ pub fn movable_one_weekend() -> HittableList {
     world
 }
 
-pub fn one_weekend_scene() -> HittableList {
+fn one_weekend_scene() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let ground_material = Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)));
     world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_material));
 
     for a in -11..11 {
@@ -76,10 +76,10 @@ pub fn one_weekend_scene() -> HittableList {
                 let material = if choose_material < 0.8 {
                     let albedo = Color::random() * Color::random();
 
-                    Material::Lambertian(Lambertian::new(albedo))
+                    Material::Lambertian(Lambertian::new_color(albedo))
                 } else if choose_material < 0.95 {
                     let albedo = Color::random_with_limits(0.5, 1.0);
-                    let fuzz = rand::random::<f64>() / 2.0;
+                    let fuzz = random::<f64>() / 2.0;
 
                     Material::Metal(Metal::new(albedo, fuzz))
                 } else {
@@ -92,7 +92,7 @@ pub fn one_weekend_scene() -> HittableList {
     }
 
     let material_dielectric = Material::Dielectric(Dielectric::new(1.5));
-    let material_lambertian = Material::Lambertian(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    let material_lambertian = Material::Lambertian(Lambertian::new_color(Color::new(0.4, 0.2, 0.1)));
     let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
     world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
@@ -101,6 +101,17 @@ pub fn one_weekend_scene() -> HittableList {
     world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric));
     world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
-
     world
+}
+
+pub enum WorldEnum {
+    OneWeekendScene,
+    MovableWeekendScene,
+}
+
+pub fn scene_selector(world: WorldEnum) -> HittableList {
+    match world {
+        WorldEnum::OneWeekendScene => one_weekend_scene(),
+        WorldEnum::MovableWeekendScene => movable_one_weekend(),
+    }
 }

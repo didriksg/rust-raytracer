@@ -9,8 +9,9 @@ use self::metal::Metal;
 pub mod lambertian;
 pub mod metal;
 pub mod dielectric;
+pub mod texture;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub enum Material {
     Metal(Metal),
     Lambertian(Lambertian),
@@ -19,7 +20,7 @@ pub enum Material {
 
 impl Default for Material {
     fn default() -> Self {
-        Material::Lambertian(Lambertian::new(Color::new(0.5, 0.5, 0.5)))
+        Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)))
     }
 }
 

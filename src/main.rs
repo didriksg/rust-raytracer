@@ -8,7 +8,7 @@ use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
 use rust_raytracer::objects::camera::Camera;
 use rust_raytracer::objects::HittableList;
-use rust_raytracer::scenes::{movable_one_weekend, one_weekend_scene};
+use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
 // Image. Change these params to get faster, but lower quality renders.
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
@@ -30,7 +30,7 @@ fn ray_trace_pixel(camera: &Camera, world: &HittableList, x: u32, y: u32) -> Col
 
 fn main() {
     // World.
-    let world = movable_one_weekend();
+    let world = scene_selector(WorldEnum::MovableWeekendScene);
 
     // Camera.
     let look_from = Point3::new(13.0, 2.0, 5.0);
@@ -54,13 +54,14 @@ fn main() {
         end_time,
     );
 
-    // Render
-    let render_time = Instant::now();
 
-    // Progress bar
+    // Progress bar.
     let progress_bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
     let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering]");
     progress_bar.set_style(progress_style.unwrap());
+
+    // Render loop.
+    let render_time = Instant::now();
 
     let pixels = (0..IMAGE_HEIGHT)
         .into_par_iter()
@@ -81,8 +82,8 @@ fn main() {
         })
         .collect::<Vec<Vec<Color>>>();
 
+    // Generate image from vector of pixels.
     let mut buffer = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
-
     for (y, row) in pixels.iter().enumerate() {
         for (x, color) in row.iter().enumerate() {
             buffer.put_pixel(x as u32, y as u32, color.write_color(SAMPLES_PER_PIXEL));

@@ -1,16 +1,22 @@
+use std::sync::Arc;
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Color, random_unit_vector};
 use crate::materials::Scatterable;
+use crate::materials::texture::{SolidColor, Texture};
 use crate::objects::HitRecord;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone)]
 pub struct Lambertian {
-    albedo: Color,
+    albedo: Arc<dyn Texture>,
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Lambertian {
-        Lambertian { albedo }
+    pub fn new_color(albedo: Color) -> Self {
+        Self::new_texture(SolidColor::new(albedo.x, albedo.y, albedo.z))
+    }
+
+    pub fn new_texture(texture: dyn Texture) -> Self {
+        Lambertian { albedo: Arc::new(texture) }
     }
 }
 
@@ -24,7 +30,7 @@ impl Scatterable for Lambertian {
         };
 
         *scattered = Ray::new(record.point, scatter_direction, ray.time);
-        *attenuation = self.albedo;
+        *attenuation = self.albedo.value(record.u, record.v, &record.point);
 
         true
     }

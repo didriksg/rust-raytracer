@@ -22,8 +22,8 @@ impl AABB {
 
         for i in 0..3 {
             let inverse_direction = 1.0 / ray_origin_as_vector[i];
-            let mut t0 = minimum_as_vector[i] - ray_origin_as_vector[i] * inverse_direction;
-            let mut t1 = maximum_as_vector[i] - ray_origin_as_vector[i] * inverse_direction;
+            let mut t0 = (minimum_as_vector[i] - ray_origin_as_vector[i]) * inverse_direction;
+            let mut t1 = (maximum_as_vector[i] - ray_origin_as_vector[i]) * inverse_direction;
 
             if inverse_direction < 0.0 {
                 swap(&mut t0, &mut t1);

@@ -1,10 +1,11 @@
+use std::f64::consts::PI;
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Point3, Vec3};
 use crate::materials::Material;
 use crate::objects::{HitRecord, Hittable};
 use crate::objects::aabb::AABB;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
@@ -12,12 +13,20 @@ pub struct Sphere {
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, material: Material) -> Sphere {
-        Sphere {
+    pub fn new(center: Point3, radius: f64, material: Material) -> Self {
+        Self {
             center,
             radius,
             material,
         }
+    }
+
+    pub fn get_sphere_uv(point: &Point3, u: &mut f64, v: &mut f64) {
+        let theta = f64::acos(-point.y);
+        let phi = f64::atan2(-point.z, point.x) + PI;
+
+        *u = phi / (2.0 * PI);
+        *v = theta / PI;
     }
 }
 
@@ -54,6 +63,11 @@ impl Hittable for Sphere {
 
         let outward_normal = (hit_record.point - self.center) / self.radius;
         hit_record.set_face_normal(&ray, outward_normal);
+
+
+        // Update to correct u and v coordinates.
+        Sphere::get_sphere_uv(&outward_normal, &mut hit_record.u, &mut hit_record.v);
+
         hit_record.material = self.material;
 
         true
