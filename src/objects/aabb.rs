@@ -14,14 +14,36 @@ impl AABB {
     pub fn new(minimum: Point3, maximum: Point3) -> Self {
         AABB { minimum, maximum }
     }
-
-    pub fn hit(&self, ray: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
+    pub fn hit_orig(&self, ray: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
         let ray_origin_as_vector = ray.origin.as_vector();
+        let ray_direction_as_vector = ray.direction.as_vector();
         let minimum_as_vector = self.minimum.as_vector();
         let maximum_as_vector = self.maximum.as_vector();
 
         for i in 0..3 {
-            let inverse_direction = 1.0 / ray_origin_as_vector[i];
+
+            let t0 = f64::min((minimum_as_vector[i] - ray_origin_as_vector[i]) / ray_direction_as_vector[i], (maximum_as_vector[i] - ray_origin_as_vector[i]) / ray_direction_as_vector[i]);
+            let t1 = f64::max((minimum_as_vector[i] - ray_origin_as_vector[i]) / ray_direction_as_vector[i], (maximum_as_vector[i] - ray_origin_as_vector[i]) / ray_direction_as_vector[i]);
+
+            t_min = f64::max(t0, t_min);
+            t_max = f64::max(t1, t_max);
+
+            if t_max <= t_min {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    pub fn hit(&self, ray: &Ray, mut t_min: f64, mut t_max: f64) -> bool {
+        let ray_origin_as_vector = ray.origin.as_vector();
+        let ray_direction_as_vector = ray.direction.as_vector();
+        let minimum_as_vector = self.minimum.as_vector();
+        let maximum_as_vector = self.maximum.as_vector();
+
+        for i in 0..3 {
+            let inverse_direction = 1.0 / ray_direction_as_vector[i];
             let mut t0 = (minimum_as_vector[i] - ray_origin_as_vector[i]) * inverse_direction;
             let mut t1 = (maximum_as_vector[i] - ray_origin_as_vector[i]) * inverse_direction;
 
@@ -29,8 +51,8 @@ impl AABB {
                 swap(&mut t0, &mut t1);
             }
 
-            t_min = f64::max(t0, t_min);
-            t_max = f64::min(t1, t_max);
+            t_min = if t0 > t_min { t0 } else { t_min };
+            t_max = if t1 < t_max { t1 } else { t_max };
 
             if t_max <= t_min {
                 return false;
@@ -47,9 +69,9 @@ impl AABB {
             f64::min(box0.minimum.z, box1.minimum.z));
 
         let biggest_point = Point3::new(
-            f64::min(box0.maximum.x,box1.maximum.x),
-            f64::min(box0.maximum.y,box1.maximum.y),
-            f64::min(box0.maximum.z,box1.maximum.z));
+            f64::max(box0.maximum.x,box1.maximum.x),
+            f64::max(box0.maximum.y,box1.maximum.y),
+            f64::max(box0.maximum.z,box1.maximum.z));
 
         AABB::new(smallest_point, biggest_point)
     }

@@ -80,7 +80,7 @@ impl Hittable for HittableList {
             *hit_record = temp_record;
         }
 
-        return hit_anything;
+        hit_anything
     }
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut AABB) -> bool {

@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
 use rust_raytracer::objects::camera::Camera;
-use rust_raytracer::objects::HittableList;
+use rust_raytracer::objects::{Hittable, HittableList};
 use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
 // Image. Change these params to get faster, but lower quality renders.
@@ -19,7 +19,7 @@ const MAX_DEPTH: usize = 50;
 const OUTPUT_PATH: &str = "output.png";
 
 
-fn ray_trace_pixel(camera: &Camera, world: &HittableList, x: u32, y: u32) -> Color {
+fn ray_trace_pixel(camera: &Camera, world: &dyn Hittable, x: u32, y: u32) -> Color {
     let u = (rand::random::<f64>() + x as f64) / (IMAGE_WIDTH - 1) as f64;
     let v = (rand::random::<f64>() + y as f64) / (IMAGE_HEIGHT - 1) as f64;
     let ray = camera.get_ray(u, v);

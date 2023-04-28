@@ -68,7 +68,7 @@ impl Hittable for Sphere {
         // Update to correct u and v coordinates.
         Sphere::get_sphere_uv(&outward_normal, &mut hit_record.u, &mut hit_record.v);
 
-        hit_record.material = self.material;
+        hit_record.material = self.material.clone();
 
         true
     }

@@ -7,7 +7,7 @@ use crate::objects::HitRecord;
 
 #[derive(Clone)]
 pub struct Lambertian {
-    albedo: Arc<dyn Texture>,
+    albedo: Arc<dyn Texture + Send + Sync>,
 }
 
 impl Lambertian {
@@ -15,7 +15,7 @@ impl Lambertian {
         Self::new_texture(SolidColor::new(albedo.x, albedo.y, albedo.z))
     }
 
-    pub fn new_texture(texture: dyn Texture) -> Self {
+    pub fn new_texture<T: Texture + 'static>(texture: T) -> Self {
         Lambertian { albedo: Arc::new(texture) }
     }
 }

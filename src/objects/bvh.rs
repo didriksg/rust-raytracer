@@ -23,7 +23,7 @@ impl BVHNode {
         let mut box_b = AABB::default();
 
         if !a.bounding_box(0.0, 0.0, &mut box_a) || !b.bounding_box(0.0, 0.0, &mut box_b) {
-            panic!("No bounding box in BVHNode.");
+            eprintln!("No bounding box in BVHNode.");
         }
 
        if box_a.minimum.as_vector()[axis] < box_b.minimum.as_vector()[axis] {
@@ -86,9 +86,9 @@ impl BVHNode {
         let mut box_left = AABB::default();
         let mut box_right = AABB::default();
 
-        if left.bounding_box(time0, time1, &mut box_left)
-            || right.bounding_box(time0, time1, &mut box_right) {
-            panic!("No bounding box in bvh node constructor.")
+        if !left.bounding_box(time0, time1, &mut box_left)
+            || !right.bounding_box(time0, time1, &mut box_right) {
+            eprintln!("No bounding box in bvh node constructor.")
         }
 
         Self {

@@ -60,7 +60,7 @@ impl Hittable for MovingSphere {
 
         let outward_normal = (hit_record.point - self.center(ray.time)) / self.radius;
         hit_record.set_face_normal(&ray, outward_normal);
-        hit_record.material = self.material;
+        hit_record.material = self.material.clone();
 
         true
     }

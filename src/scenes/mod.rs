@@ -5,11 +5,12 @@ use crate::materials::dielectric::Dielectric;
 use crate::materials::lambertian::Lambertian;
 use crate::materials::Material;
 use crate::materials::metal::Metal;
+use crate::objects::bvh::BVHNode;
 use crate::objects::HittableList;
 use crate::objects::moving_sphere::MovingSphere;
 use crate::objects::sphere::Sphere;
 
-fn movable_one_weekend() -> HittableList {
+fn movable_one_weekend() -> BVHNode {
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)));
@@ -52,16 +53,16 @@ fn movable_one_weekend() -> HittableList {
     let material_lambertian = Material::Lambertian(Lambertian::new_color(Color::new(0.4, 0.2, 0.1)));
     let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
-    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
+    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric.clone()));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
-    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric));
+    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
     world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
-    world
+    BVHNode::from_list_hittable_list(world, 0.0, 1.0)
 }
 
-fn one_weekend_scene() -> HittableList {
+fn one_weekend_scene() -> BVHNode {
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)));
@@ -95,13 +96,13 @@ fn one_weekend_scene() -> HittableList {
     let material_lambertian = Material::Lambertian(Lambertian::new_color(Color::new(0.4, 0.2, 0.1)));
     let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
-    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
+    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric.clone()));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
-    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric));
+    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
     world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
-    world
+    BVHNode::from_list_hittable_list(world, 0.0, 1.0)
 }
 
 pub enum WorldEnum {
@@ -109,7 +110,7 @@ pub enum WorldEnum {
     MovableWeekendScene,
 }
 
-pub fn scene_selector(world: WorldEnum) -> HittableList {
+pub fn scene_selector(world: WorldEnum) -> BVHNode {
     match world {
         WorldEnum::OneWeekendScene => one_weekend_scene(),
         WorldEnum::MovableWeekendScene => movable_one_weekend(),
