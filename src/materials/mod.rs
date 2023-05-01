@@ -9,7 +9,7 @@ use self::metal::Metal;
 pub mod lambertian;
 pub mod metal;
 pub mod dielectric;
-pub mod texture;
+pub mod textures;
 
 #[derive(Clone)]
 pub enum Material {

@@ -5,15 +5,21 @@ use crate::materials::dielectric::Dielectric;
 use crate::materials::lambertian::Lambertian;
 use crate::materials::Material;
 use crate::materials::metal::Metal;
-use crate::objects::bvh::BVHNode;
+use crate::materials::textures::checker_texture::CheckerTexture;
+use crate::materials::textures::perlin::{NoiseTexture};
 use crate::objects::HittableList;
 use crate::objects::moving_sphere::MovingSphere;
 use crate::objects::sphere::Sphere;
 
-fn movable_one_weekend() -> BVHNode {
+fn movable_one_weekend() -> HittableList {
     let mut world = HittableList::new();
 
-    let ground_material = Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)));
+    let ground_material = Material::Lambertian(Lambertian::new_texture(
+        CheckerTexture::new_from_color(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    )));
+
     world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_material));
 
     for a in -11..11 {
@@ -53,16 +59,16 @@ fn movable_one_weekend() -> BVHNode {
     let material_lambertian = Material::Lambertian(Lambertian::new_color(Color::new(0.4, 0.2, 0.1)));
     let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
-    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric.clone()));
+    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
-    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
-    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
+    // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
+    // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
-    BVHNode::from_list_hittable_list(world, 0.0, 1.0)
+    world
 }
 
-fn one_weekend_scene() -> BVHNode {
+fn one_weekend_scene() -> HittableList {
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian(Lambertian::new_color(Color::new(0.5, 0.5, 0.5)));
@@ -102,17 +108,48 @@ fn one_weekend_scene() -> BVHNode {
     world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
     world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
-    BVHNode::from_list_hittable_list(world, 0.0, 1.0)
+    world
 }
+
+fn two_textured_spheres_scene() -> HittableList {
+    let mut world = HittableList::new();
+
+    let checker_material = Lambertian::new_texture(
+        CheckerTexture::new_from_color(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+
+    world.add(Sphere::new(Point3::new(0.0, -10.0, 0.0), 10.0, Material::Lambertian(checker_material.clone())));
+    world.add(Sphere::new(Point3::new(0.0, 10.0, 0.0), 10.0, Material::Lambertian(checker_material)));
+
+    world
+}
+
+fn two_perlin_spheres() -> HittableList {
+    let mut world = HittableList::new();
+
+    let perlin_texture = Lambertian::new_texture(NoiseTexture::new(4.0));
+
+    world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, Material::Lambertian(perlin_texture.clone())));
+    world.add(Sphere::new(Point3::new(0.0, 2.0, 0.0), 2.0, Material::Lambertian(perlin_texture)));
+
+    world
+}
+
 
 pub enum WorldEnum {
     OneWeekendScene,
     MovableWeekendScene,
+    TwoTexturedSpheresScene,
+    TwoPerlinSpheresScene,
 }
 
-pub fn scene_selector(world: WorldEnum) -> BVHNode {
+pub fn scene_selector(world: WorldEnum) -> HittableList {
     match world {
         WorldEnum::OneWeekendScene => one_weekend_scene(),
         WorldEnum::MovableWeekendScene => movable_one_weekend(),
+        WorldEnum::TwoTexturedSpheresScene => two_textured_spheres_scene(),
+        WorldEnum::TwoPerlinSpheresScene => two_perlin_spheres(),
     }
 }

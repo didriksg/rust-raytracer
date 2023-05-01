@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
 use rust_raytracer::objects::camera::Camera;
-use rust_raytracer::objects::{Hittable, HittableList};
+use rust_raytracer::objects::{Hittable};
 use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
 // Image. Change these params to get faster, but lower quality renders.
@@ -30,15 +30,15 @@ fn ray_trace_pixel(camera: &Camera, world: &dyn Hittable, x: u32, y: u32) -> Col
 
 fn main() {
     // World.
-    let world = scene_selector(WorldEnum::MovableWeekendScene);
+    let world = scene_selector(WorldEnum::TwoPerlinSpheresScene);
 
     // Camera.
-    let look_from = Point3::new(13.0, 2.0, 5.0);
+    let look_from = Point3::new(13.0, 2.0, 3.0);
     let look_at = Point3::new(0.0, 0.0, 0.0);
     let up_vector = Vec3::new(0.0, 1.0, 0.0);
     let field_of_view: f64 = 20.0;
     let dist_to_focus = 10.0;
-    let aperture = 0.1;
+    let aperture = 0.0;
     let start_time = 0.0;
     let end_time = 1.0;
 

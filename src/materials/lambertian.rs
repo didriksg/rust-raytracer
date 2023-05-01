@@ -2,7 +2,8 @@ use std::sync::Arc;
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Color, random_unit_vector};
 use crate::materials::Scatterable;
-use crate::materials::texture::{SolidColor, Texture};
+use crate::materials::textures::solid_color::SolidColor;
+use crate::materials::textures::Texture;
 use crate::objects::HitRecord;
 
 #[derive(Clone)]

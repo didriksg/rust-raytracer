@@ -1,11 +1,7 @@
-use dyn_clonable::dyn_clone::DynClone;
 use crate::data_structs::vec3::{Color, Point3};
+use crate::materials::textures::Texture;
 
-pub trait Texture: DynClone + Send + Sync {
-    fn value(&self, u: f64, v: f64, p: &Point3) -> Color;
-}
-
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct SolidColor {
     color_value: Color
 }
@@ -18,7 +14,7 @@ impl SolidColor {
 
 
 impl Texture for SolidColor {
-    fn value(&self, _u: f64, _v: f64, _p: &Point3) -> Point3 {
+    fn value(&self, _u: f64, _v: f64, _p: &Point3) -> Color {
         self.color_value
     }
 }
