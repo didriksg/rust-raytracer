@@ -4,7 +4,7 @@ use crate::data_structs::vec3::{Color, random_unit_vector};
 use crate::materials::Scatterable;
 use crate::materials::textures::solid_color::SolidColor;
 use crate::materials::textures::Texture;
-use crate::objects::HitRecord;
+use crate::objects::hittables::HitRecord;
 
 #[derive(Clone)]
 pub struct Lambertian {
@@ -12,7 +12,7 @@ pub struct Lambertian {
 }
 
 impl Lambertian {
-    pub fn new_color(albedo: Color) -> Self {
+    pub fn from_color(albedo: Color) -> Self {
         Self::new_texture(SolidColor::new(albedo.x, albedo.y, albedo.z))
     }
 

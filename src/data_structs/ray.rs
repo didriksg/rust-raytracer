@@ -1,6 +1,6 @@
 use crate::data_structs::vec3::{Color, Point3, Vec3};
-use crate::materials::Scatterable;
-use crate::objects::{HitRecord, Hittable};
+use crate::materials::{Emmitable, Scatterable};
+use crate::objects::hittables::{HitRecord, Hittable};
 
 #[derive(Default)]
 pub struct Ray {
@@ -19,24 +19,26 @@ impl Ray {
 }
 
 
-pub fn ray_color(ray: &Ray, world: &dyn Hittable, depth: usize) -> Color {
+pub fn ray_color(ray: &Ray, background: &Color, world: &dyn Hittable, depth: usize) -> Color {
     let mut record = HitRecord::default();
 
+    // Exceeded bounce limit. End.
     if depth == 0 {
         return Color::ZERO;
     }
 
-    if world.hit(ray, 0.0001, f64::INFINITY, &mut record) {
-        let mut scattered = Ray::default();
-        let mut attenuation = Color::ZERO;
-
-        return if record.material.scatter(ray, &record, &mut attenuation, &mut scattered) {
-            attenuation * ray_color(&scattered, world, depth - 1)
-        } else {
-            Color::ZERO
-        };
+    // No hit -> Background color.
+    if !world.hit(ray, 0.0001, f64::INFINITY, &mut record) {
+        return *background
     }
 
-    let t = 0.5 * (ray.direction.normalize().y + 1.0);
-    (1.0 - t) * Color::ONE + t * Color::new(0.5, 0.7, 1.0)
+    let mut scattered = Ray::default();
+    let mut attenuation = Color::ZERO;
+    let emitted = record.material.emitted(record.u, record.v, &record.point);
+
+    if !record.material.scatter(ray, &record, &mut attenuation, &mut scattered) {
+        return emitted
+    }
+
+    emitted + attenuation * ray_color(&scattered, background, world, depth - 1)
 }

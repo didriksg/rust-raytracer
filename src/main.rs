@@ -7,36 +7,38 @@ use rayon::prelude::*;
 use rust_raytracer::data_structs::ray::ray_color;
 use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
 use rust_raytracer::objects::camera::Camera;
-use rust_raytracer::objects::{Hittable};
+use rust_raytracer::objects::hittables::Hittable;
 use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
 // Image. Change these params to get faster, but lower quality renders.
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const IMAGE_WIDTH: u32 = 400;
+const ASPECT_RATIO: f64 = 1.0 / 1.0;
+const IMAGE_WIDTH: u32 = 600;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: usize = 100;
+const SAMPLES_PER_PIXEL: usize = 200;
 const MAX_DEPTH: usize = 50;
 const OUTPUT_PATH: &str = "output.png";
 
 
-fn ray_trace_pixel(camera: &Camera, world: &dyn Hittable, x: u32, y: u32) -> Color {
+fn ray_trace_pixel(camera: &Camera, world: &dyn Hittable, background: &Color, x: u32, y: u32) -> Color {
     let u = (rand::random::<f64>() + x as f64) / (IMAGE_WIDTH - 1) as f64;
     let v = (rand::random::<f64>() + y as f64) / (IMAGE_HEIGHT - 1) as f64;
-    let ray = camera.get_ray(u, v);
+    let ray = &camera.get_ray(u, v);
 
-    ray_color(&ray, world, MAX_DEPTH)
+    ray_color(ray, background, world, MAX_DEPTH)
 }
 
 
 fn main() {
     // World.
-    let world = scene_selector(WorldEnum::TwoPerlinSpheresScene);
+    let world = scene_selector(WorldEnum::CornellBoxScene);
+    let light = 0.0;
+    let background = Color::new(light, light, light);
 
     // Camera.
-    let look_from = Point3::new(13.0, 2.0, 3.0);
-    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let look_from = Point3::new(278.0, 278.0, -800.0);
+    let look_at = Point3::new(278.0, 278.0, 0.0);
     let up_vector = Vec3::new(0.0, 1.0, 0.0);
-    let field_of_view: f64 = 20.0;
+    let field_of_view: f64 = 40.0;
     let dist_to_focus = 10.0;
     let aperture = 0.0;
     let start_time = 0.0;
@@ -74,7 +76,7 @@ fn main() {
                     (0..SAMPLES_PER_PIXEL)
                         .into_par_iter()
                         .map(|_| {
-                            ray_trace_pixel(&camera, &world, x, y)
+                            ray_trace_pixel(&camera, &world, &background, x, y)
                         })
                         .sum::<Color>()
                 })

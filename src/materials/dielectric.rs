@@ -1,7 +1,7 @@
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Color, Vec3};
 use crate::materials::Scatterable;
-use crate::objects::HitRecord;
+use crate::objects::hittables::HitRecord;
 
 #[derive(Copy, Clone)]
 pub struct Dielectric {

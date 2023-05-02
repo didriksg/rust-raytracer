@@ -2,8 +2,8 @@ use std::f64::consts::PI;
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Point3, Vec3};
 use crate::materials::Material;
-use crate::objects::{HitRecord, Hittable};
 use crate::objects::aabb::AABB;
+use crate::objects::hittables::{HitRecord, Hittable};
 
 #[derive(Clone)]
 pub struct Sphere {

@@ -5,8 +5,8 @@ use rand::distributions::uniform::SampleRange;
 use rand::thread_rng;
 
 use crate::data_structs::ray::Ray;
-use crate::objects::{HitRecord, Hittable, HittableList};
 use crate::objects::aabb::AABB;
+use crate::objects::hittables::{HitRecord, Hittable, HittableList};
 
 /// Bounding volume hierarchy
 #[derive(Default, Clone)]

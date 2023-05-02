@@ -1,9 +1,9 @@
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Point3, Vec3};
 use crate::materials::Material;
-use crate::objects::{HitRecord, Hittable};
 use crate::objects::aabb::AABB;
-use crate::objects::sphere::root_check;
+use crate::objects::hittables::{HitRecord, Hittable};
+use crate::objects::hittables::sphere::root_check;
 
 #[derive(Clone)]
 pub struct MovingSphere {
