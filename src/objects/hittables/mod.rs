@@ -10,7 +10,7 @@ pub mod cube;
 pub mod moving_sphere;
 pub mod sphere;
 pub mod rectangles;
-pub mod translate;
+pub mod instances;
 
 #[derive(Default)]
 pub struct HitRecord {
