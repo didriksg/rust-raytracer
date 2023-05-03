@@ -45,6 +45,10 @@ impl Vec3 {
         vec![self.x, self.y, self.z]
     }
 
+    pub fn from_vector(vector: Vec<f64>) -> Self {
+        Self { x: vector[0], y: vector[1], z: vector[2] }
+    }
+
     pub fn new(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { x, y, z }
     }

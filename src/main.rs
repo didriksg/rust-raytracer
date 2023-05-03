@@ -10,9 +10,9 @@ use rust_raytracer::objects::camera::Camera;
 use rust_raytracer::objects::hittables::Hittable;
 use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
-// Image. Change these params to get faster, but lower quality renders.
-const ASPECT_RATIO: f64 = 1.0 / 1.0;
-const IMAGE_WIDTH: u32 = 600;
+// Image. Change these params to get faster, but lower quality renders. const
+const ASPECT_RATIO: f64 = 1.0;
+const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
 const SAMPLES_PER_PIXEL: usize = 200;
 const MAX_DEPTH: usize = 50;
@@ -27,15 +27,14 @@ fn ray_trace_pixel(camera: &Camera, world: &dyn Hittable, background: &Color, x:
     ray_color(ray, background, world, MAX_DEPTH)
 }
 
-
 fn main() {
     // World.
-    let world = scene_selector(WorldEnum::CornellBoxScene);
+    let world = scene_selector(WorldEnum::FinalScene);
     let light = 0.0;
     let background = Color::new(light, light, light);
 
     // Camera.
-    let look_from = Point3::new(278.0, 278.0, -800.0);
+    let look_from = Point3::new(478.0, 278.0, -600.0);
     let look_at = Point3::new(278.0, 278.0, 0.0);
     let up_vector = Vec3::new(0.0, 1.0, 0.0);
     let field_of_view: f64 = 40.0;
@@ -56,7 +55,6 @@ fn main() {
         end_time,
     );
 
-
     // Progress bar.
     let progress_bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
     let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering]");
@@ -65,24 +63,14 @@ fn main() {
     // Render loop.
     let render_time = Instant::now();
 
-    let pixels = (0..IMAGE_HEIGHT)
-        .into_par_iter()
-        .rev()
-        .map(|y| {
-            (0..IMAGE_WIDTH)
-                .into_par_iter()
-                .map(|x| {
-                    progress_bar.inc(1);
-                    (0..SAMPLES_PER_PIXEL)
-                        .into_par_iter()
-                        .map(|_| {
-                            ray_trace_pixel(&camera, &world, &background, x, y)
-                        })
-                        .sum::<Color>()
-                })
-                .collect::<Vec<Color>>()
-        })
-        .collect::<Vec<Vec<Color>>>();
+    let pixels = (0..IMAGE_HEIGHT).into_par_iter().rev().map(|y| {
+        (0..IMAGE_WIDTH).into_par_iter().map(|x| {
+            progress_bar.inc(1);
+            (0..SAMPLES_PER_PIXEL).into_par_iter().map(|_| {
+                ray_trace_pixel(&camera, &world, &background, x, y)
+            }).sum::<Color>()
+        }).collect::<Vec<Color>>()
+    }).collect::<Vec<Vec<Color>>>();
 
     // Generate image from vector of pixels.
     let mut buffer = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);

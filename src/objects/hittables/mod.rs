@@ -11,6 +11,7 @@ pub mod moving_sphere;
 pub mod sphere;
 pub mod rectangles;
 pub mod instances;
+pub mod constant_medium;
 
 #[derive(Default)]
 pub struct HitRecord {

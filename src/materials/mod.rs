@@ -1,6 +1,7 @@
 use crate::data_structs::ray::Ray;
 use crate::data_structs::vec3::{Color, Point3};
 use crate::materials::diffuse_light::DiffuseLight;
+use crate::materials::textures::isotropic::Isotropic;
 use crate::objects::hittables::HitRecord;
 
 use self::dielectric::Dielectric;
@@ -19,6 +20,7 @@ pub enum Material {
     Lambertian(Lambertian),
     Dielectric(Dielectric),
     DiffuseLight(DiffuseLight),
+    Isotropic(Isotropic),
 }
 
 impl Default for Material {
@@ -41,6 +43,7 @@ impl Scatterable for Material {
             Material::Lambertian(ref inner) => inner.scatter(ray, record, attenuation, scattered),
             Material::Metal(ref inner) => inner.scatter(ray, record, attenuation, scattered),
             Material::Dielectric(ref inner) => inner.scatter(ray, record, attenuation, scattered),
+            Material::Isotropic(ref inner) => inner.scatter(ray, record, attenuation, scattered),
 
             _ => false,
         }

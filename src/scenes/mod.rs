@@ -1,4 +1,4 @@
-use rand::random;
+use rand::{random, Rng, thread_rng};
 
 use crate::data_structs::vec3::{Color, Point3, Vec3};
 use crate::materials::dielectric::Dielectric;
@@ -9,8 +9,12 @@ use crate::materials::metal::Metal;
 use crate::materials::textures::checker_texture::CheckerTexture;
 use crate::materials::textures::image_texture::ImageTexture;
 use crate::materials::textures::perlin::{NoiseTexture};
+use crate::objects::hittables::bvh::BVHNode;
+use crate::objects::hittables::constant_medium::ConstantMedium;
 use crate::objects::hittables::cube::Cube;
 use crate::objects::hittables::HittableList;
+use crate::objects::hittables::instances::rotate_y::RotateY;
+use crate::objects::hittables::instances::translate::Translate;
 use crate::objects::hittables::moving_sphere::MovingSphere;
 use crate::objects::hittables::rectangles::xy_rectangle::XyRectangle;
 use crate::objects::hittables::rectangles::xz_rectangle::XzRectangle;
@@ -178,16 +182,141 @@ fn cornell_box() -> HittableList {
     world.add(XzRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, Material::Lambertian(white.clone())));
     world.add(XyRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, Material::Lambertian(white.clone())));
 
-    world.add(Cube::new(
-        Point3::new(130.0, 0.0, 65.0),
-        Point3::new(295.0, 165.0, 230.0),
+    let cube_1 = Cube::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
         Material::Lambertian(white.clone())
+    );
+
+    let cube_1 = RotateY::new(cube_1, 15.0);
+    let cube_1 = Translate::new(cube_1, Vec3::new(265.0, 0.0, 295.0));
+
+
+    let cube_2 = Cube::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
+        Material::Lambertian(white.clone())
+    );
+
+    let cube_2 = RotateY::new(cube_2, -18.0);
+    let cube_2 = Translate::new(cube_2, Vec3::new(130.0, 0.0, 65.0));
+
+    world.add(cube_1);
+    world.add(cube_2);
+
+    world
+}
+
+fn cornell_smoke() -> HittableList {
+    let mut world = HittableList::new();
+
+    let red = Lambertian::from_color(Color::new(0.65, 0.05, 0.05));
+    let white = Lambertian::from_color(Color::new(0.73, 0.73, 0.73));
+    let green = Lambertian::from_color(Color::new(0.12, 0.45, 0.15));
+    let light = DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0));
+
+    world.add(YzRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, Material::Lambertian(green)));
+    world.add(YzRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, Material::Lambertian(red)));
+    world.add(XzRectangle::new(113.0, 443.0, 127.0, 432.0, 554.0, Material::DiffuseLight(light)));
+    world.add(XzRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, Material::Lambertian(white.clone())));
+    world.add(XzRectangle::new(0.0, 555.0, 0.0, 555.0, 0.0, Material::Lambertian(white.clone())));
+    world.add(XyRectangle::new(0.0, 555.0, 0.0, 555.0, 555.0, Material::Lambertian(white.clone())));
+
+    let cube_1 = Cube::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
+        Material::Lambertian(white.clone())
+    );
+
+    let cube_1 = RotateY::new(cube_1, 15.0);
+    let cube_1 = Translate::new(cube_1, Vec3::new(265.0, 0.0, 295.0));
+
+
+    let cube_2 = Cube::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
+        Material::Lambertian(white)
+    );
+
+    let cube_2 = RotateY::new(cube_2, -18.0);
+    let cube_2 = Translate::new(cube_2, Vec3::new(130.0, 0.0, 65.0));
+
+    world.add(ConstantMedium::from_color(cube_1, 0.01, Color::ZERO));
+    world.add(ConstantMedium::from_color(cube_2, 0.01, Color::ONE));
+
+    world
+}
+
+fn final_scene() -> HittableList {
+    let mut rng = thread_rng();
+    let mut world = HittableList::new();
+
+    // Ground boxes.
+    let mut boxes_1 = HittableList::new();
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let if64 = i as f64;
+            let jf64 = j as f64;
+
+            let w = 100.0;
+            let x0 = -1000.0 + if64 * w;
+            let z0 = -1000.0 + jf64 * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = rng.gen_range(1.0..101.0);
+            let z1 = z0 + w;
+
+            boxes_1.add(Cube::new(
+                Point3::new(x0, y0, z0),
+                Point3::new(x1, y1, z1),
+                Material::Lambertian(Lambertian::from_color(Color::new(
+                    0.48,
+                    0.83,
+                    0.53
+                )))
+            ));
+        }
+    }
+
+    // Bvh node for ground boxes.
+    world.add(BVHNode::from_list_hittable_list(boxes_1, 0.0, 1.0));
+
+    // Light.
+    world.add(XzRectangle::new(
+        123.0,
+        432.0,
+        147.0,
+        412.0,
+        554.0,
+        Material::DiffuseLight(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)))
     ));
 
-    world.add(Cube::new(
-        Point3::new(265.0, 0.0, 295.0),
-        Point3::new(430.0, 330.0, 460.0),
-        Material::Lambertian(white.clone())
+    // Moving sphere.
+    let movable_sphere_center_1 = Point3::new(400.0, 400.0, 200.0);
+    let movable_sphere_center_2 = movable_sphere_center_1 + Vec3::new(30.0, 0.0, 0.0);
+    let moving_sphere_material = Material::Lambertian(Lambertian::from_color(Color::new(0.7, 0.3, 0.1)));
+    world.add(MovingSphere::new(
+        movable_sphere_center_1,
+        movable_sphere_center_2,
+        0.0,
+        1.0,
+        50.0,
+        moving_sphere_material
+    ));
+
+    // Glass sphere.
+    world.add(Sphere::new(
+        Point3::new(260.0, 150.0, 45.0),
+        50.0,
+        Material::Dielectric(Dielectric::new(1.5))
+    ));
+
+    // Metal sphere.
+    world.add(Sphere::new(
+        Point3::new(0.0, 150.0, 145.0),
+        50.0,
+        Material::Metal(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0))
     ));
 
     world
@@ -202,6 +331,8 @@ pub enum WorldEnum {
     EarthScene,
     DiffuseLightScene,
     CornellBoxScene,
+    CornellSmokeScene,
+    FinalScene,
 }
 
 pub fn scene_selector(world: WorldEnum) -> HittableList {
@@ -213,5 +344,7 @@ pub fn scene_selector(world: WorldEnum) -> HittableList {
         WorldEnum::EarthScene => earth(),
         WorldEnum::DiffuseLightScene => diffuse_light(),
         WorldEnum::CornellBoxScene => cornell_box(),
+        WorldEnum::CornellSmokeScene => cornell_smoke(),
+        WorldEnum::FinalScene => final_scene(),
     }
 }
