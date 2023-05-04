@@ -319,11 +319,19 @@ fn final_scene() -> HittableList {
     ));
 
     // Shiny lambertian.
-    world.add(ConstantMedium::from_color(Sphere::new(
+    let boundary = Sphere::new(
         Point3::new(360.0, 150.0, 145.0),
         70.0,
-        Material::Dielectric(Dielectric::new(1.5)),
-    ), 0.2, Color::new(0.2, 0.4, 0.9)));
+        Material::Dielectric(Dielectric::new(1.5)));
+    world.add(boundary.clone());
+    world.add(ConstantMedium::from_color(boundary, 0.2, Color::new(0.2, 0.4, 0.9)));
+
+    // Fog sphere.
+    // world.add(ConstantMedium::from_color(Sphere::new(
+    //     Point3::new(0.0, 0.0, 0.0),
+    //     5000.0,
+    //     Material::Dielectric(Dielectric::new(1.5))
+    // ), 0.0001, Color::ONE));
 
     // Earth image texture.
     world.add(Sphere::new(
@@ -352,14 +360,6 @@ fn final_scene() -> HittableList {
     //     RotateY::new(BVHNode::from_list_hittable_list(boxes_2, 0.0, 1.0), 15.0),
     //     Vec3::new(-100.0, 270.0, 395.0)
     // ));
-
-
-    // Fog sphere.
-    // world.add(ConstantMedium::from_color(Sphere::new(
-    //     Point3::new(0.0, 0.0, 0.0),
-    //     5000.0,
-    //     Material::Dielectric(Dielectric::new(1.5))
-    // ), 0.0001, Color::ONE));
 
     world
 }
