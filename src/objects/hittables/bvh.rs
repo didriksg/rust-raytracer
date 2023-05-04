@@ -9,7 +9,7 @@ use crate::objects::aabb::AABB;
 use crate::objects::hittables::{HitRecord, Hittable, HittableList};
 
 /// Bounding volume hierarchy
-#[derive(Default, Clone)]
+#[derive(Clone, Default)]
 pub struct BVHNode {
     left: Option<Arc<dyn Hittable + Sync + Send>>,
     right: Option<Arc<dyn Hittable + Sync + Send>>,

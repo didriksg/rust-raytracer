@@ -2,13 +2,13 @@ use rand::{random, Rng, thread_rng};
 
 use crate::data_structs::vec3::{Color, Point3, Vec3};
 use crate::materials::dielectric::Dielectric;
+use crate::materials::diffuse_light::DiffuseLight;
 use crate::materials::lambertian::Lambertian;
 use crate::materials::Material;
-use crate::materials::diffuse_light::DiffuseLight;
 use crate::materials::metal::Metal;
 use crate::materials::textures::checker_texture::CheckerTexture;
 use crate::materials::textures::image_texture::ImageTexture;
-use crate::materials::textures::perlin::{NoiseTexture};
+use crate::materials::textures::perlin::NoiseTexture;
 use crate::objects::hittables::bvh::BVHNode;
 use crate::objects::hittables::constant_medium::ConstantMedium;
 use crate::objects::hittables::cube::Cube;
@@ -26,9 +26,9 @@ fn movable_one_weekend() -> HittableList {
 
     let ground_material = Material::Lambertian(Lambertian::new_texture(
         CheckerTexture::new_from_color(
-        Color::new(0.2, 0.3, 0.1),
-        Color::new(0.9, 0.9, 0.9),
-    )));
+            Color::new(0.2, 0.3, 0.1),
+            Color::new(0.9, 0.9, 0.9),
+        )));
 
     world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_material));
 
@@ -60,7 +60,6 @@ fn movable_one_weekend() -> HittableList {
                 } else {
                     world.add(Sphere::new(center, 0.2, material));
                 };
-
             }
         }
     }
@@ -126,9 +125,9 @@ fn two_textured_spheres_scene() -> HittableList {
 
     let checker_material = Lambertian::new_texture(
         CheckerTexture::new_from_color(
-        Color::new(0.2, 0.3, 0.1),
-        Color::new(0.9, 0.9, 0.9),
-    ));
+            Color::new(0.2, 0.3, 0.1),
+            Color::new(0.9, 0.9, 0.9),
+        ));
 
     world.add(Sphere::new(Point3::new(0.0, -10.0, 0.0), 10.0, Material::Lambertian(checker_material.clone())));
     world.add(Sphere::new(Point3::new(0.0, 10.0, 0.0), 10.0, Material::Lambertian(checker_material)));
@@ -185,7 +184,7 @@ fn cornell_box() -> HittableList {
     let cube_1 = Cube::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 330.0, 165.0),
-        Material::Lambertian(white.clone())
+        Material::Lambertian(white.clone()),
     );
 
     let cube_1 = RotateY::new(cube_1, 15.0);
@@ -195,7 +194,7 @@ fn cornell_box() -> HittableList {
     let cube_2 = Cube::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 165.0, 165.0),
-        Material::Lambertian(white.clone())
+        Material::Lambertian(white.clone()),
     );
 
     let cube_2 = RotateY::new(cube_2, -18.0);
@@ -225,7 +224,7 @@ fn cornell_smoke() -> HittableList {
     let cube_1 = Cube::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 330.0, 165.0),
-        Material::Lambertian(white.clone())
+        Material::Lambertian(white.clone()),
     );
 
     let cube_1 = RotateY::new(cube_1, 15.0);
@@ -235,7 +234,7 @@ fn cornell_smoke() -> HittableList {
     let cube_2 = Cube::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 165.0, 165.0),
-        Material::Lambertian(white)
+        Material::Lambertian(white),
     );
 
     let cube_2 = RotateY::new(cube_2, -18.0);
@@ -273,8 +272,8 @@ fn final_scene() -> HittableList {
                 Material::Lambertian(Lambertian::from_color(Color::new(
                     0.48,
                     0.83,
-                    0.53
-                )))
+                    0.53,
+                ))),
             ));
         }
     }
@@ -289,7 +288,7 @@ fn final_scene() -> HittableList {
         147.0,
         412.0,
         554.0,
-        Material::DiffuseLight(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0)))
+        Material::DiffuseLight(DiffuseLight::from_color(Color::new(7.0, 7.0, 7.0))),
     ));
 
     // Moving sphere.
@@ -302,22 +301,65 @@ fn final_scene() -> HittableList {
         0.0,
         1.0,
         50.0,
-        moving_sphere_material
+        moving_sphere_material,
     ));
 
     // Glass sphere.
     world.add(Sphere::new(
         Point3::new(260.0, 150.0, 45.0),
         50.0,
-        Material::Dielectric(Dielectric::new(1.5))
+        Material::Dielectric(Dielectric::new(1.5)),
     ));
 
     // Metal sphere.
     world.add(Sphere::new(
         Point3::new(0.0, 150.0, 145.0),
         50.0,
-        Material::Metal(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0))
+        Material::Metal(Metal::new(Color::new(0.8, 0.8, 0.9), 1.0)),
     ));
+
+    // Shiny lambertian.
+    world.add(ConstantMedium::from_color(Sphere::new(
+        Point3::new(360.0, 150.0, 145.0),
+        70.0,
+        Material::Dielectric(Dielectric::new(1.5)),
+    ), 0.2, Color::new(0.2, 0.4, 0.9)));
+
+    // Earth image texture.
+    world.add(Sphere::new(
+        Point3::new(400.0, 200.0, 400.0),
+        100.0,
+        Material::Lambertian(Lambertian::new_texture(ImageTexture::new("src/image_textures/earthmap.jpg")))
+    ));
+
+    // Perlin noise texture.
+    world.add(Sphere::new(
+        Point3::new(220.0, 280.0, 300.0),
+        80.0,
+        Material::Lambertian(Lambertian::new_texture(NoiseTexture::new(0.1)))
+    ));
+
+    // // Volume of spheres
+    // let mut boxes_2 = HittableList::new();
+    // let white = Material::Lambertian(Lambertian::from_color(Color::new(0.73, 0.73, 0.73)));
+    // let number_of_spheres_inside_box = 1000;
+    //
+    // for _ in 0..number_of_spheres_inside_box {
+    //     boxes_2.add(Sphere::new(Point3::random_with_limits(0.0, 165.0), 10.0, white.clone()));
+    // }
+    //
+    // world.add(Translate::new(
+    //     RotateY::new(BVHNode::from_list_hittable_list(boxes_2, 0.0, 1.0), 15.0),
+    //     Vec3::new(-100.0, 270.0, 395.0)
+    // ));
+
+
+    // Fog sphere.
+    // world.add(ConstantMedium::from_color(Sphere::new(
+    //     Point3::new(0.0, 0.0, 0.0),
+    //     5000.0,
+    //     Material::Dielectric(Dielectric::new(1.5))
+    // ), 0.0001, Color::ONE));
 
     world
 }

@@ -64,7 +64,6 @@ impl Hittable for Sphere {
         let outward_normal = (hit_record.point - self.center) / self.radius;
         hit_record.set_face_normal(&ray, outward_normal);
 
-
         // Update to correct u and v coordinates.
         Sphere::get_sphere_uv(&outward_normal, &mut hit_record.u, &mut hit_record.v);
 

@@ -39,8 +39,8 @@ impl ConstantMedium {
 
 impl Hittable for ConstantMedium {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
-        let enable_debug = false;
-        let debugging = enable_debug && random::<f64>() < 0.00001;
+        // let enable_debug = false;
+        // let debugging = enable_debug && random::<f64>() < 0.00001;
 
         let mut hit_record_1 = HitRecord::default();
         let mut hit_record_2 = HitRecord::default();
@@ -63,7 +63,7 @@ impl Hittable for ConstantMedium {
             return false
         }
 
-        if debugging { eprintln!("t_min: {}, t_max: {}", hit_record_1.t, hit_record_2.t); }
+        // if debugging { eprintln!("t_min: {}, t_max: {}", hit_record_1.t, hit_record_2.t); }
 
         hit_record_1.t = if hit_record_1.t < t_min { t_min } else { hit_record_1.t };
         hit_record_2.t = if hit_record_2.t > t_max { t_max } else { hit_record_2.t };
@@ -85,9 +85,9 @@ impl Hittable for ConstantMedium {
         hit_record.t = hit_record_1.t + hit_distance / ray_length;
         hit_record.point = ray.at(hit_record.t);
 
-        if debugging {
-            eprintln!("Hit distance: {:?}\nhit_record.t: {:?} \nhit_record.point: {:?}", hit_distance, hit_record.t, hit_record.point);
-        }
+        // if debugging {
+        //     eprintln!("Hit distance: {:?}\nhit_record.t: {:?} \nhit_record.point: {:?}", hit_distance, hit_record.t, hit_record.point);
+        // }
 
         hit_record.material = Material::Isotropic(self.phase_function.clone());
 

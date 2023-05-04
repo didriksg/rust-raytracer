@@ -12,9 +12,9 @@ use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
 // Image. Change these params to get faster, but lower quality renders. const
 const ASPECT_RATIO: f64 = 1.0;
-const IMAGE_WIDTH: u32 = 800;
+const IMAGE_WIDTH: u32 = 200;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: usize = 200;
+const SAMPLES_PER_PIXEL: usize = 2000;
 const MAX_DEPTH: usize = 50;
 const OUTPUT_PATH: &str = "output.png";
 
