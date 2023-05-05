@@ -9,6 +9,7 @@ use crate::materials::metal::Metal;
 use crate::materials::textures::checker_texture::CheckerTexture;
 use crate::materials::textures::image_texture::ImageTexture;
 use crate::materials::textures::perlin::NoiseTexture;
+use crate::objects::camera::Camera;
 use crate::objects::hittables::bvh::BVHNode;
 use crate::objects::hittables::constant_medium::ConstantMedium;
 use crate::objects::hittables::cube::Cube;
@@ -21,7 +22,97 @@ use crate::objects::hittables::rectangles::xz_rectangle::XzRectangle;
 use crate::objects::hittables::rectangles::yz_rectangle::YzRectangle;
 use crate::objects::hittables::sphere::Sphere;
 
-fn movable_one_weekend() -> HittableList {
+fn one_weekend_scene(image_width: u32, image_height: u32) -> (Color, Camera, HittableList) {
+    let background_color = Color::new(0.7, 0.8, 1.0);
+
+    let look_from = Point3::new(13.0, 2.0, 3.0);
+    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.1;
+    let fov = 20.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
+    let mut world = HittableList::new();
+
+    let ground_material = Material::Lambertian(Lambertian::from_color(Color::new(0.5, 0.5, 0.5)));
+    world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_material));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_material = rand::random::<f64>();
+            let center = Point3::new(a as f64 + 0.9 * rand::random::<f64>(), 0.2, b as f64 + 0.9 * rand::random::<f64>());
+
+            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
+                let material = if choose_material < 0.8 {
+                    let albedo = Color::random() * Color::random();
+
+                    Material::Lambertian(Lambertian::from_color(albedo))
+                } else if choose_material < 0.95 {
+                    let albedo = Color::random_with_limits(0.5, 1.0);
+                    let fuzz = random::<f64>() / 2.0;
+
+                    Material::Metal(Metal::new(albedo, fuzz))
+                } else {
+                    Material::Dielectric(Dielectric::new(1.5))
+                };
+
+                world.add(Sphere::new(center, 0.2, material));
+            }
+        }
+    }
+
+    let material_dielectric = Material::Dielectric(Dielectric::new(1.5));
+    let material_lambertian = Material::Lambertian(Lambertian::from_color(Color::new(0.4, 0.2, 0.1)));
+    let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+
+    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric.clone()));
+    world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
+    world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
+    // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
+    // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
+
+    (background_color, camera, world)
+}
+
+
+fn movable_one_weekend(image_width: u32, image_height: u32) -> (Color, Camera, HittableList) {
+    let background_color = Color::new(0.7, 0.8, 1.0);
+
+    let look_from = Point3::new(13.0, 2.0, 3.0);
+    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.1;
+    let fov = 20.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
     let mut world = HittableList::new();
 
     let ground_material = Material::Lambertian(Lambertian::new_texture(
@@ -68,59 +159,39 @@ fn movable_one_weekend() -> HittableList {
     let material_lambertian = Material::Lambertian(Lambertian::from_color(Color::new(0.4, 0.2, 0.1)));
     let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
 
-    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric));
+    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric.clone()));
     world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
     world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
     // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
     // world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
 
-    world
+    (background_color, camera, world)
 }
 
-fn one_weekend_scene() -> HittableList {
-    let mut world = HittableList::new();
+fn two_textured_spheres_scene(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let background_color = Color::new(0.7, 0.8, 1.0);
 
-    let ground_material = Material::Lambertian(Lambertian::from_color(Color::new(0.5, 0.5, 0.5)));
-    world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, ground_material));
+    let look_from = Point3::new(13.0, 2.0, 3.0);
+    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 20.0;
 
-    for a in -11..11 {
-        for b in -11..11 {
-            let choose_material = rand::random::<f64>();
-            let center = Point3::new(a as f64 + 0.9 * rand::random::<f64>(), 0.2, b as f64 + 0.9 * rand::random::<f64>());
+    let aspect_ratio = image_width as f64 / image_height as f64;
 
-            if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
-                let material = if choose_material < 0.8 {
-                    let albedo = Color::random() * Color::random();
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
 
-                    Material::Lambertian(Lambertian::from_color(albedo))
-                } else if choose_material < 0.95 {
-                    let albedo = Color::random_with_limits(0.5, 1.0);
-                    let fuzz = random::<f64>() / 2.0;
-
-                    Material::Metal(Metal::new(albedo, fuzz))
-                } else {
-                    Material::Dielectric(Dielectric::new(1.5))
-                };
-
-                world.add(Sphere::new(center, 0.2, material));
-            }
-        }
-    }
-
-    let material_dielectric = Material::Dielectric(Dielectric::new(1.5));
-    let material_lambertian = Material::Lambertian(Lambertian::from_color(Color::new(0.4, 0.2, 0.1)));
-    let material_metal = Material::Metal(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
-
-    world.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material_dielectric.clone()));
-    world.add(Sphere::new(Point3::new(-4.0, 1.0, 0.0), 1.0, material_lambertian));
-    world.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, material_metal));
-    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), 0.7, material_dielectric.clone()));
-    world.add(Sphere::new(Point3::new(4.0, 0.7, 2.5), -0.65, material_dielectric));
-
-    world
-}
-
-fn two_textured_spheres_scene() -> HittableList {
     let mut world = HittableList::new();
 
     let checker_material = Lambertian::new_texture(
@@ -132,10 +203,33 @@ fn two_textured_spheres_scene() -> HittableList {
     world.add(Sphere::new(Point3::new(0.0, -10.0, 0.0), 10.0, Material::Lambertian(checker_material.clone())));
     world.add(Sphere::new(Point3::new(0.0, 10.0, 0.0), 10.0, Material::Lambertian(checker_material)));
 
-    world
+    (background_color, camera, world)
 }
 
-fn two_perlin_spheres() -> HittableList {
+fn two_perlin_spheres(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let background_color = Color::new(0.7, 0.8, 1.0);
+
+    let look_from = Point3::new(13.0, 2.0, 3.0);
+    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 20.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
     let mut world = HittableList::new();
 
     let perlin_texture = Lambertian::new_texture(NoiseTexture::new(4.0));
@@ -143,30 +237,99 @@ fn two_perlin_spheres() -> HittableList {
     world.add(Sphere::new(Point3::new(0.0, -1000.0, 0.0), 1000.0, Material::Lambertian(perlin_texture.clone())));
     world.add(Sphere::new(Point3::new(0.0, 2.0, 0.0), 2.0, Material::Lambertian(perlin_texture)));
 
-    world
+    (background_color, camera, world)
 }
 
-fn earth() -> HittableList {
+fn earth(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let background_color = Color::new(0.7, 0.8, 1.0);
+
+    let look_from = Point3::new(0.0, 0.0, 12.0);
+    let look_at = Point3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 20.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
     let mut world = HittableList::new();
 
     let earth_texture = Lambertian::new_texture(ImageTexture::new("src/image_textures/earthmap.jpg"));
     world.add(Sphere::new(Point3::new(0.0, 0.0, 0.0), 2.0, Material::Lambertian(earth_texture)));
 
-    world
+    (background_color, camera, world)
 }
 
-fn diffuse_light() -> HittableList {
-    let mut world = two_perlin_spheres();
+fn diffuse_light(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let (_, _, mut world) = two_perlin_spheres(image_width, image_height);
+    let background_color = Color::new(0.0, 0.0, 0.0);
+
+    let look_from = Point3::new(26.0, 3.0, 6.0);
+    let look_at = Point3::new(0.0, 2.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 20.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
 
     let light_strength = 4.0;
     let diffuse_light = DiffuseLight::from_color(Color::new(light_strength, light_strength, light_strength));
     world.add(XyRectangle::new(3.0, 5.0, 1.0, 3.0, -2.0, Material::DiffuseLight(diffuse_light.clone())));
     world.add(Sphere::new(Point3::new(0.0, 7.0, 0.0), 2.0, Material::DiffuseLight(diffuse_light)));
 
-    world
+    (background_color, camera, world)
 }
 
-fn cornell_box() -> HittableList {
+fn cornell_box(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let background_color = Color::new(0.0, 0.0, 0.0);
+
+    let look_from = Point3::new(278.0, 278.0, -800.0);
+    let look_at = Point3::new(278.0, 278.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 40.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
     let mut world = HittableList::new();
 
     let red = Lambertian::from_color(Color::new(0.65, 0.05, 0.05));
@@ -203,10 +366,33 @@ fn cornell_box() -> HittableList {
     world.add(cube_1);
     world.add(cube_2);
 
-    world
+    (background_color, camera, world)
 }
 
-fn cornell_smoke() -> HittableList {
+fn cornell_smoke(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let background_color = Color::new(0.0, 0.0, 0.0);
+
+    let look_from = Point3::new(278.0, 278.0, -800.0);
+    let look_at = Point3::new(278.0, 278.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 40.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
     let mut world = HittableList::new();
 
     let red = Lambertian::from_color(Color::new(0.65, 0.05, 0.05));
@@ -243,10 +429,33 @@ fn cornell_smoke() -> HittableList {
     world.add(ConstantMedium::from_color(cube_1, 0.01, Color::ZERO));
     world.add(ConstantMedium::from_color(cube_2, 0.01, Color::ONE));
 
-    world
+    (background_color, camera, world)
 }
 
-fn final_scene() -> HittableList {
+fn final_scene(image_width: u32, image_height: u32) -> (Vec3, Camera, HittableList) {
+    let background_color = Color::new(0.0, 0.0, 0.0);
+
+    let look_from = Point3::new(478.0, 278.0, -600.0);
+    let look_at = Point3::new(278.0, 278.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let distance_to_focus = 10.0;
+    let aperture = 0.0;
+    let fov = 40.0;
+
+    let aspect_ratio = image_width as f64 / image_height as f64;
+
+    let camera = Camera::new(
+        look_from,
+        look_at,
+        up,
+        fov,
+        aspect_ratio,
+        aperture,
+        distance_to_focus,
+        0.0,
+        1.0
+    );
+
     let mut rng = thread_rng();
     let mut world = HittableList::new();
 
@@ -361,7 +570,7 @@ fn final_scene() -> HittableList {
     //     Vec3::new(-100.0, 270.0, 395.0)
     // ));
 
-    world
+    (background_color, camera, world)
 }
 
 
@@ -377,16 +586,16 @@ pub enum WorldEnum {
     FinalScene,
 }
 
-pub fn scene_selector(world: WorldEnum) -> HittableList {
+pub fn scene_selector(world: WorldEnum, image_width: u32, image_height: u32) -> (Color, Camera, HittableList) {
     match world {
-        WorldEnum::OneWeekendScene => one_weekend_scene(),
-        WorldEnum::MovableWeekendScene => movable_one_weekend(),
-        WorldEnum::TwoTexturedSpheresScene => two_textured_spheres_scene(),
-        WorldEnum::TwoPerlinSpheresScene => two_perlin_spheres(),
-        WorldEnum::EarthScene => earth(),
-        WorldEnum::DiffuseLightScene => diffuse_light(),
-        WorldEnum::CornellBoxScene => cornell_box(),
-        WorldEnum::CornellSmokeScene => cornell_smoke(),
-        WorldEnum::FinalScene => final_scene(),
+        WorldEnum::OneWeekendScene => one_weekend_scene(image_width, image_height),
+        WorldEnum::MovableWeekendScene => movable_one_weekend(image_width, image_height),
+        WorldEnum::TwoTexturedSpheresScene => two_textured_spheres_scene(image_width, image_height),
+        WorldEnum::TwoPerlinSpheresScene => two_perlin_spheres(image_width, image_height),
+        WorldEnum::EarthScene => earth(image_width, image_height),
+        WorldEnum::DiffuseLightScene => diffuse_light(image_width, image_height),
+        WorldEnum::CornellBoxScene => cornell_box(image_width, image_height),
+        WorldEnum::CornellSmokeScene => cornell_smoke(image_width, image_height),
+        WorldEnum::FinalScene => final_scene(image_width, image_height),
     }
 }

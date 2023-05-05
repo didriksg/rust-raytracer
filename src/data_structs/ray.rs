@@ -36,6 +36,7 @@ pub fn ray_color(ray: &Ray, background: &Color, world: &dyn Hittable, depth: usi
     let mut attenuation = Color::ZERO;
     let emitted = record.material.emitted(record.u, record.v, &record.point);
 
+    // If material is not scattering, return emitted color.
     if !record.material.scatter(ray, &record, &mut attenuation, &mut scattered) {
         return emitted
     }

@@ -5,16 +5,16 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
 
 use rust_raytracer::data_structs::ray::ray_color;
-use rust_raytracer::data_structs::vec3::{Color, Point3, Vec3};
+use rust_raytracer::data_structs::vec3::{Color, Vec3};
 use rust_raytracer::objects::camera::Camera;
-use rust_raytracer::objects::hittables::Hittable;
+use rust_raytracer::objects::hittables::{Hittable, HittableList};
 use rust_raytracer::scenes::{scene_selector, WorldEnum};
 
 // Image. Change these params to get faster, but lower quality renders. const
 const ASPECT_RATIO: f64 = 1.0;
-const IMAGE_WIDTH: u32 = 200;
+const IMAGE_WIDTH: u32 = 800;
 const IMAGE_HEIGHT: u32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as u32;
-const SAMPLES_PER_PIXEL: usize = 2000;
+const SAMPLES_PER_PIXEL: usize = 10_000;
 const MAX_DEPTH: usize = 50;
 const OUTPUT_PATH: &str = "output.png";
 
@@ -27,65 +27,70 @@ fn ray_trace_pixel(camera: &Camera, world: &dyn Hittable, background: &Color, x:
     ray_color(ray, background, world, MAX_DEPTH)
 }
 
+fn render_loop(image_width: u32, image_height: u32, camera: &Camera, world: &HittableList, background: &Color) -> Vec<Vec<Color>> {
+    (0..image_width)
+        .into_par_iter()
+        .rev()
+        .map(|y| (0..image_height)
+            .into_par_iter()
+            .map(|x| ray_trace_pixel(camera, world, background, x, y))
+            .collect::<Vec<Color>>())
+        .collect::<Vec<Vec<Color>>>()
+}
+
+fn add_images(current_image: &Vec<Vec<Color>>, new_image: &Vec<Vec<Color>>) -> Vec<Vec<Vec3>> {
+    current_image
+        .into_par_iter()
+        .zip(new_image)
+        .map(|(current_row, new_row)| {
+            current_row
+                .into_par_iter()
+                .zip(new_row)
+                .map(|(orig_pixel, new_pixel)| (orig_pixel + new_pixel))
+                .collect::<Vec<Color>>()
+        }).collect::<Vec<Vec<Color>>>()
+}
+
 fn main() {
     // World.
-    let world = scene_selector(WorldEnum::FinalScene);
-    let light = 0.0;
-    let background = Color::new(light, light, light);
-
-    // Camera.
-    let look_from = Point3::new(478.0, 278.0, -600.0);
-    let look_at = Point3::new(278.0, 278.0, 0.0);
-    let up_vector = Vec3::new(0.0, 1.0, 0.0);
-    let field_of_view: f64 = 40.0;
-    let dist_to_focus = 10.0;
-    let aperture = 0.0;
-    let start_time = 0.0;
-    let end_time = 1.0;
-
-    let camera = Camera::new(
-        look_from,
-        look_at,
-        up_vector,
-        field_of_view,
-        ASPECT_RATIO,
-        aperture,
-        dist_to_focus,
-        start_time,
-        end_time,
+    let (background, camera, world) = scene_selector(
+        WorldEnum::FinalScene,
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT,
     );
 
     // Progress bar.
-    let progress_bar = ProgressBar::new((IMAGE_HEIGHT * IMAGE_WIDTH) as u64);
-    let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering]");
+    let progress_bar = ProgressBar::new(SAMPLES_PER_PIXEL as u64);
+    let progress_style = ProgressStyle::with_template("[{elapsed_precise}] {wide_bar} {percent}% [Rendering frame {pos}/{len}]");
     progress_bar.set_style(progress_style.unwrap());
 
     // Render loop.
     let render_time = Instant::now();
 
-    let pixels = (0..IMAGE_HEIGHT).into_par_iter().rev().map(|y| {
-        (0..IMAGE_WIDTH).into_par_iter().map(|x| {
-            progress_bar.inc(1);
-            (0..SAMPLES_PER_PIXEL).into_par_iter().map(|_| {
-                ray_trace_pixel(&camera, &world, &background, x, y)
-            }).sum::<Color>()
-        }).collect::<Vec<Color>>()
-    }).collect::<Vec<Vec<Color>>>();
+    let mut pixels = vec![vec![Color::ZERO; IMAGE_WIDTH as usize]; IMAGE_HEIGHT as usize];
+    for i in 0..SAMPLES_PER_PIXEL {
+        let new_pixels = render_loop(IMAGE_HEIGHT, IMAGE_WIDTH, &camera, &world, &background);
+        pixels = add_images(&pixels, &new_pixels);
 
-    // Generate image from vector of pixels.
-    let mut buffer = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
-    for (y, row) in pixels.iter().enumerate() {
-        for (x, color) in row.iter().enumerate() {
-            buffer.put_pixel(x as u32, y as u32, color.write_color(SAMPLES_PER_PIXEL));
+        // Generate image from vector of pixels.
+        let mut buffer = RgbImage::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+        for (y, row) in pixels.iter().enumerate() {
+            for (x, color) in row.iter().enumerate() {
+                buffer.put_pixel(x as u32, y as u32, color.write_color(i + 1));
+            }
         }
+        buffer.save(OUTPUT_PATH).expect("TODO: panic message");
+        // {
+        //     Err(e) => eprintln!("Error writing file: {e}"),
+        //     Ok(()) => println!("Render saved to: {OUTPUT_PATH}"),
+        // };  
+        progress_bar.inc(1);
     }
+
+
 
     let render_time = render_time.elapsed();
     println!("Done.");
     println!("Render time: {:?}", render_time);
 
-    match buffer.save(OUTPUT_PATH) {
-        Err(e) => eprintln!("Error writing file: {e}"),
-        Ok(()) => println!("Render saved to: {OUTPUT_PATH}"),
-    };
 }

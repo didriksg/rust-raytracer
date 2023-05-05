@@ -37,7 +37,7 @@ impl Perlin {
         let j = floored_y as i32;
         let k = floored_z as i32;
 
-        let mut color_array = [[[Vec3::default(); 2]; 2]; 2];
+        let mut color_array = [[[Vec3::ZERO; 2]; 2]; 2];
         for di in 0..2 {
             for dj in 0..2 {
                 for dk in 0..2 {

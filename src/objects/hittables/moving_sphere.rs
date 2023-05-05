@@ -77,7 +77,7 @@ impl Hittable for MovingSphere {
             self.center(time1) + radius_vector
         );
 
-        *output_box = AABB::surrounding_box(box_time0, box_time1);
+        *output_box = AABB::surrounding_box(&box_time0, &box_time1);
 
         true
     }

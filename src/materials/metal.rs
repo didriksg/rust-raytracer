@@ -3,7 +3,7 @@ use crate::data_structs::vec3::{Color, random_in_unit_sphere, Vec3};
 use crate::materials::Scatterable;
 use crate::objects::hittables::HitRecord;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Metal {
     albedo: Color,
     fuzz: f64,

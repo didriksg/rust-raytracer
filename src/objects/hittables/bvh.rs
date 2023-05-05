@@ -9,10 +9,10 @@ use crate::objects::aabb::AABB;
 use crate::objects::hittables::{HitRecord, Hittable, HittableList};
 
 /// Bounding volume hierarchy
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct BVHNode {
-    left: Option<Arc<dyn Hittable + Sync + Send>>,
-    right: Option<Arc<dyn Hittable + Sync + Send>>,
+    left: Arc<dyn Hittable + Sync + Send>,
+    right: Arc<dyn Hittable + Sync + Send>,
     bbox: AABB,
 }
 
@@ -92,9 +92,9 @@ impl BVHNode {
         }
 
         Self {
-            left: Some(left),
-            right: Some(right),
-            bbox: AABB::surrounding_box(box_left, box_right),
+            left: left,
+            right: right,
+            bbox: AABB::surrounding_box(&box_left, &box_right),
         }
     }
 
@@ -110,20 +110,20 @@ impl Hittable for BVHNode {
         }
 
         let hit_left = self.left
-            .as_ref()
-            .unwrap()
+            // .as_ref()
+            // .unwrap()
             .hit(ray, t_min, t_max, hit_record);
 
         let hit_right = self.right
-            .as_ref()
-            .unwrap()
+            // .as_ref()
+            // .unwrap()
             .hit(ray, t_min, t_max, hit_record);
 
         hit_left || hit_right
     }
 
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut AABB) -> bool {
-        *output_box = self.bbox;
+        *output_box = self.bbox.clone();
 
         true
     }

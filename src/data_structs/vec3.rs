@@ -2,7 +2,7 @@ use std::iter::Sum;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use image::Rgb;
-use rand::Rng;
+use rand::{Rng, thread_rng};
 
 pub use Vec3 as Color;
 pub use Vec3 as Point3;
@@ -21,7 +21,7 @@ pub fn random_unit_vector() -> Vec3 {
 }
 
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Default)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -103,7 +103,7 @@ impl Vec3 {
     }
 
     pub fn random_with_limits(min: f64, max: f64) -> Vec3 {
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
 
         Vec3 {
             x: rng.gen_range(min..max),
@@ -113,9 +113,14 @@ impl Vec3 {
     }
 
     pub fn random_in_unit_disk() -> Point3 {
+        let mut rng = thread_rng();
+
         loop {
-            let mut point = Vec3::random_with_limits(-1.0, 1.0);
-            point.z = 0.0;
+            let point = Vec3::new(
+                rng.gen_range(-1.0..1.0),
+                rng.gen_range(-1.0..1.0),
+                0.0
+            );
 
             if point.length_squared() >= 1.0 {
                 continue;

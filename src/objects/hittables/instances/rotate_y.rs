@@ -98,7 +98,7 @@ impl Hittable for RotateY {
     }
 
     fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut AABB) -> bool {
-        *output_box = self.bbox;
+        *output_box = self.bbox.clone();
 
         self.has_box
     }
